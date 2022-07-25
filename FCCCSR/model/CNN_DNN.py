@@ -174,7 +174,7 @@ def cnn_dnn():
         epoch_mins, epoch_secs = epoch_time(start_time, end_time)
      #Loading model parameters
     model.load_state_dict(torch.load('./parameter/tut1-model.pt'))
-    print('---------DNN_CNN_Testing-------')
+    print('---------DNN_CNN_Testing------')
     test_loss, test_acc, test_sn, test_sp, test_ACC, test_mcc,CNN_DNN_Pro,cnn_y= Test(model, test_loader, criterion)
     print(f'test_sn: {test_sn*100:.2f}% | test_sp: {test_sp*100:.2f}%')
     print(f'test_mcc: {test_mcc:.4f} | test_ACC: {test_ACC * 100:.2f}%')
