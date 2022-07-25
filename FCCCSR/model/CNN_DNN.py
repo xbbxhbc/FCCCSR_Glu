@@ -14,6 +14,7 @@ from sklearn.metrics import recall_score
 torch.manual_seed(23)
 np.random.seed(23)
 torch.manual_seed(1)
+#Define the cnn_dnn model
 def cnn_dnn():
     import numpy as np
     import pandas as pd
@@ -24,16 +25,20 @@ def cnn_dnn():
     np.random.seed(23)
     from sklearn.preprocessing import MinMaxScaler
     torch.manual_seed(1)
+    #loading training set
     X_train, y_train = getTrain()
+    #loading testing set
     X_test, y_test = getTest()
     X_train = np.array(X_train)
     y_train = np.array(y_train)
     X_test = np.array(X_test)
     y_test = np.array(y_test)
+    #numpy->tensor
     X_train = torch.from_numpy(X_train)
     y_train = torch.from_numpy(y_train)
     X_test = torch.from_numpy(X_test)
     y_test = torch.from_numpy(y_test)
+    #define  MyDeep() 
     class MyDeep(nn.Module):
         def __init__(self, conv1_size, maxp1_size, conv2_size):
             super(MyDeep, self).__init__()
@@ -58,7 +63,9 @@ def cnn_dnn():
             x = torch.sigmoid(x)
             return x
     torch.manual_seed(1)
+    #BATCH_SIZE
     BATCH_SIZE =108
+    #encapsulated dataset
     train_dataset = Data.TensorDataset(X_train, y_train)
     test_dataset = Data.TensorDataset(X_test, y_test)
     train_loader = Data.DataLoader(
@@ -71,26 +78,31 @@ def cnn_dnn():
         batch_size=BATCH_SIZE,
         shuffle=True,
     )
-    # ---------------------------训练模型------------------------------------
+    # ---------------------------training model------------------------------------
     import torch.optim as optim
+    #number of iterations
     N_EPOCHS = 100
+    #convolution kernel size
     Conv1_size = 5
     Maxp1_size = 4
     Conv2_size = 3
     model = MyDeep(Conv1_size, Maxp1_size, Conv2_size).cuda()
+    #optimizer
     optimizer = optim.Adam(model.parameters(), eps=5e-8)
     scheduler = WarmupLinearSchedule(optimizer, warmup_steps=6e-6, t_total=len(train_loader) * N_EPOCHS)
     criterion = nn.BCEWithLogitsLoss()
     criterion = criterion.cuda()
+    #count parameters
     def count_parameters(model):
         return sum(p.numel() for p in model.parameters() if p.requires_grad)
     print(f'The model has {count_parameters(model):,} trainable parameters')
-
+    #ACC
     def binary_accuracy(preds, y):
         rounded_preds = torch.round(preds)
         correct = (rounded_preds == y).float()
         acc = correct.sum() / len(correct)
         return acc
+    #metric
     def metric(preds, y):
         a = preds.cpu().numpy()
         rounded_preds = torch.round(preds)
@@ -117,6 +129,7 @@ def cnn_dnn():
             epoch_loss += loss.item()
             epoch_acc += acc.item()
         return epoch_loss / len(iterator), epoch_acc / len(iterator)
+    #test function
     def Test(model, iterator, criterion):
         epoch_loss = 0
         epoch_acc = 0
@@ -147,6 +160,7 @@ def cnn_dnn():
         return epoch_loss / len(iterator), epoch_acc / len(iterator), epoch_SN / len(iterator), epoch_SP / len(
             iterator), epoch_ACC / len(iterator), epoch_MCC / len(iterator),cnn_pro,cnn_y
     import time
+    #calculating time
     def epoch_time(start_time, end_time):
         elapsed_time = end_time - start_time
         elapsed_mins = int(elapsed_time / 60)
@@ -158,6 +172,7 @@ def cnn_dnn():
         train_loss, train_acc = train(model, train_loader, optimizer, criterion)
         end_time = time.time()
         epoch_mins, epoch_secs = epoch_time(start_time, end_time)
+     #Loading model parameters
     model.load_state_dict(torch.load('./parameter/tut1-model.pt'))
     print('---------DNN_CNN_Testing-------')
     test_loss, test_acc, test_sn, test_sp, test_ACC, test_mcc,CNN_DNN_Pro,cnn_y= Test(model, test_loader, criterion)
